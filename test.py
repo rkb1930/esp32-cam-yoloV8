@@ -5,28 +5,29 @@ from ultralytics import YOLO
 
 app = Flask(__name__)
 
+# Webcam index (0 for built-in camera)
+WEBCAM_INDEX = 0
 
-ESP32_URL = "http://192.168.184.100:81/stream"  # Update this with your ESP32-CAM IP
-
-
+# Load YOLOv8m model
 model = YOLO("yolov8m.pt")
 
+# Define Trapezium ROI
 ROI_POINTS = np.array([[100, 300], [500, 300], [600, 480], [50, 480]])
 
-
-FOCAL_LENGTH = 250
-KNOWN_OBJECT_WIDTH = 1.7
+# Focal length for distance calculation
+FOCAL_LENGTH = 250  # Adjust this for accuracy
+KNOWN_OBJECT_WIDTH = 1.7  # Average width of a human in meters
 
 
 def is_inside_roi(x, y):
-
+    """Check if a point is inside the trapezium ROI."""
     roi_mask = np.zeros((480, 640), dtype=np.uint8)
     cv2.fillPoly(roi_mask, [ROI_POINTS], 255)
     return roi_mask[y, x] == 255
 
 
 def estimate_distance(bbox_width):
-
+    """Estimate object distance using focal length formula."""
     if bbox_width > 0:
         distance = (KNOWN_OBJECT_WIDTH * FOCAL_LENGTH) / bbox_width
         return round(distance, 2)
@@ -34,8 +35,8 @@ def estimate_distance(bbox_width):
 
 
 def generate_frames():
-
-    cap = cv2.VideoCapture(ESP32_URL)
+    """Capture webcam frames, detect objects, and display results."""
+    cap = cv2.VideoCapture(WEBCAM_INDEX)
 
     while cap.isOpened():
         success, frame = cap.read()
@@ -47,7 +48,7 @@ def generate_frames():
         accident_warning = False
         detected_distance = None
 
-
+        # Draw ROI
         cv2.polylines(frame, [ROI_POINTS], isClosed=True, color=(255, 0, 0), thickness=2)
 
         for result in results:
@@ -82,7 +83,7 @@ def generate_frames():
             cv2.putText(frame, f"Distance: {detected_distance}m", (350, 70),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
 
-        
+        # Encode frame as JPEG
         ret, buffer = cv2.imencode(".jpg", frame)
         if not ret:
             continue
