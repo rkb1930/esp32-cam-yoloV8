@@ -132,12 +132,9 @@
 #     loop = asyncio.get_event_loop()
 #     loop.create_task(receive_cam2_distance())
 #     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
-
 import cv2
 import numpy as np
-import asyncio
-import websockets
-from flask import Flask, render_template, Response, jsonify
+from flask import Flask, render_template, Response
 from flask_cors import CORS
 from ultralytics import YOLO
 
@@ -146,8 +143,8 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS
 
 # ESP32-CAM URLs
-ESP32_CAM1_URL = "http://192.168.212.100:81/stream"  # Vehicle Detector
-ESP32_CAM2_URL = "http://192.168.212.194:81/stream"  # Obstacle Detector
+ESP32_CAM1_URL = "http://192.168.123.100:81/stream"  # Vehicle Detector
+ESP32_CAM2_URL = "http://192.168.123.194:81/stream"  # Obstacle Detector
 
 # Load YOLOv8 Model
 model = YOLO("yolov8m.pt")
@@ -159,8 +156,6 @@ VEHICLES = ["car", "truck", "bus", "motorbike"]  # CAM1
 # Constants for Distance Calculation
 KNOWN_HEIGHT_OBJ = 1.5  # Example: Average vehicle height in meters
 FOCAL_LENGTH = 50  # Estimated focal length from camera calibration
-CAM2_DISTANCE = None  # Distance from CAM2
-VEHICLE_DISTANCE = None  # Distance from CAM1
 
 
 def calculate_distance(bbox_height):
@@ -185,13 +180,16 @@ def generate_feed(cam_url, object_classes):
             for box in r.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 label = r.names[int(box.cls[0])]
+
                 if label in object_classes:
                     bbox_height = y2 - y1
                     distance = calculate_distance(bbox_height)
+
+                    # Draw Bounding Box & Label
                     color = (0, 255, 0)
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
                     text = f"{label}: {distance} ft" if distance else label
-                    cv2.putText(frame, text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    cv2.putText(frame, text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
         _, buffer = cv2.imencode('.jpg', frame)
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
@@ -216,4 +214,3 @@ def video_feed_cam2():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
-

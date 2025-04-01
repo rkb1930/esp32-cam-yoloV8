@@ -17,12 +17,12 @@
     <div class="container">
         <div>
             <h3>Vehicle Detection (CAM1)</h3>
-            <img id="videoFeed1" class="video" src="http://192.168.212.44:5000/video_feed/cam1" width="480" height="360">
+            <img id="videoFeed1" class="video" src="http://192.168.123.44:5000/video_feed/cam1" width="480" height="360">
             <p id="vehicleDistance" class="info">Vehicle Distance: -- ft</p>
         </div>
         <div>
             <h3>Obstacle Detection (CAM2)</h3>
-            <img id="videoFeed2" class="video" src="http://192.168.212.44:5000/video_feed/cam2" width="480" height="360">
+            <img id="videoFeed2" class="video" src="http://192.168.123.44:5000/video_feed/cam2" width="480" height="360">
             <p id="obstacleDistance" class="info">Obstacle Distance: -- ft</p>
         </div>
     </div>
@@ -30,18 +30,18 @@
     <h2 id="totalDistance">Total Distance: -- ft</h2>
 
     <script>
-        async function updateDistances() {
-            try {
-                let response = await fetch("http://192.168.212.44:5000/get_distances");
-                let data = await response.json();
-                document.getElementById("vehicleDistance").textContent = `Vehicle Distance: ${data.vehicle_distance?.toFixed(2) ?? '--'} ft`;
-                document.getElementById("obstacleDistance").textContent = `Obstacle Distance: ${data.obstacle_distance?.toFixed(2) ?? '--'} ft`;
-                document.getElementById("totalDistance").textContent = `Total Distance: ${data.total_distance?.toFixed(2) ?? '--'} ft`;
-            } catch (error) {
-                console.error("Error fetching distances:", error);
-            }
-        }
-        setInterval(updateDistances, 2000);
+<!--        async function updateDistances() {-->
+<!--            try {-->
+<!--                let response = await fetch("http://192.168.212.44:5000/get_distances");-->
+<!--                let data = await response.json();-->
+<!--                document.getElementById("vehicleDistance").textContent = `Vehicle Distance: ${data.vehicle_distance?.toFixed(2) ?? '&#45;&#45;'} ft`;-->
+<!--                document.getElementById("obstacleDistance").textContent = `Obstacle Distance: ${data.obstacle_distance?.toFixed(2) ?? '&#45;&#45;'} ft`;-->
+<!--                document.getElementById("totalDistance").textContent = `Total Distance: ${data.total_distance?.toFixed(2) ?? '&#45;&#45;'} ft`;-->
+<!--            } catch (error) {-->
+<!--                console.error("Error fetching distances:", error);-->
+<!--            }-->
+<!--        }-->
+<!--        setInterval(updateDistances, 2000);-->
     </script>
 </body>
 </html>
