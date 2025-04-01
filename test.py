@@ -15,7 +15,7 @@ model = YOLO("yolov8m.pt")
 ROI_POINTS = np.array([[100, 300], [500, 300], [600, 480], [50, 480]])
 
 # Focal length for distance calculation
-FOCAL_LENGTH = 250  # Adjust this for accuracy
+FOCAL_LENGTH = 250 Z21  # Adjust this for accuracy
 KNOWN_OBJECT_WIDTH = 1.7  # Average width of a human in meters
 
 
