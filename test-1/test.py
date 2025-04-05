@@ -50,11 +50,21 @@ CAM1_DATA_FILE = os.path.join(DATA_DIR, 'cam1_detections.json')
 CAM2_DATA_FILE = os.path.join(DATA_DIR, 'cam2_detections.json')
 COMBINED_DATA_FILE = os.path.join(DATA_DIR, 'combined_detections.json')
 
+DETECTIONS_DIR = 'detections'  # Directory to save images
 
-def ensure_data_dir():
-    """Ensure data directory exists"""
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR)
+os.makedirs(DETECTIONS_DIR, exist_ok=True)
+
+
+
+def save_obstacle_image(frame, cls_name):
+    """
+    Save detected obstacle image with timestamp.
+    """
+    timestamp = int(time.time())
+    filename = f"{cls_name}_{timestamp}.jpg"
+    filepath = os.path.join(DETECTIONS_DIR, filename)
+    cv2.imwrite(filepath, frame)
+    print(f"Saved obstacle image: {filepath}")
 
 
 def calculate_distance(bbox_width, focal_length, known_width):
@@ -317,266 +327,11 @@ def get_data():
         })
 
 
-def create_templates():
-    """
-    Create the required templates for Flask
-    """
-    import os
 
-    # Create templates directory if it doesn't exist
-    if not os.path.exists('templates'):
-        os.makedirs('templates')
-
-    # Create index.html
-    with open('templates/index.html', 'w') as f:
-        f.write('''
-<!DOCTYPE html>
-<html>
-<head>
-    <title>ESP32 Dual Camera Object Detection</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f0f0;
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            margin-bottom: 20px;
-        }
-        .camera-container {
-            width: 45%;
-            min-width: 400px;
-            margin: 10px;
-            background-color: white;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .camera-feed {
-            width: 100%;
-            border-radius: 5px;
-            height: auto;
-            object-fit: contain;
-        }
-        .detection-info {
-            margin-top: 15px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            height: 200px;
-            overflow-y: auto;
-        }
-        .total-distance {
-            background-color: #e7f3ff;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px auto;
-            width: 90%;
-            max-width: 800px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .total-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        .distance-breakdown {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 15px;
-            text-align: center;
-        }
-        .distance-component {
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #f8f9fa;
-            width: 30%;
-        }
-        h2 {
-            color: #555;
-            margin-top: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .obstacle {
-            color: #d9534f;
-        }
-        .vehicle {
-            color: #337ab7;
-        }
-        .resolution-info {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: #666;
-        }
-        @media (max-width: 900px) {
-            .camera-container {
-                width: 90%;
-            }
-            .distance-breakdown {
-                flex-direction: column;
-                align-items: center;
-            }
-            .distance-component {
-                width: 80%;
-                margin-bottom: 10px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <h1>ESP32 Dual Camera Object Detection Dashboard</h1>
-    <div class="resolution-info">Camera Resolution: 640 x 480</div>
-
-    <div class="total-distance">
-        <h2>Total Distance Calculation</h2>
-        <div class="total-value" id="total-distance">0.00 m</div>
-        <div class="distance-breakdown">
-            <div class="distance-component">
-                <h3>Closest Obstacle</h3>
-                <div id="obstacle-distance">0.00 m</div>
-            </div>
-            <div class="distance-component">
-                <h3>Camera Separation</h3>
-                <div id="camera-distance">1.00 m</div>
-            </div>
-            <div class="distance-component">
-                <h3>Closest Vehicle</h3>
-                <div id="vehicle-distance">0.00 m</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="camera-container">
-            <h2>Camera 1: Obstacle Detection</h2>
-            <img src="{{ url_for('video_feed_cam1') }}" class="camera-feed">
-            <div class="detection-info">
-                <h3>Detected Obstacles</h3>
-                <table id="obstacles-table">
-                    <thead>
-                        <tr>
-                            <th>Object</th>
-                            <th>Distance (m)</th>
-                            <th>Confidence</th>
-                        </tr>
-                    </thead>
-                    <tbody id="obstacles-data">
-                        <!-- Will be populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="camera-container">
-            <h2>Camera 2: Vehicle Detection</h2>
-            <img src="{{ url_for('video_feed_cam2') }}" class="camera-feed">
-            <div class="detection-info">
-                <h3>Detected Vehicles</h3>
-                <table id="vehicles-table">
-                    <thead>
-                        <tr>
-                            <th>Vehicle</th>
-                            <th>Distance (m)</th>
-                            <th>Confidence</th>
-                        </tr>
-                    </thead>
-                    <tbody id="vehicles-data">
-                        <!-- Will be populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Function to update detection data
-        function updateDetectionData() {
-            fetch('/data')
-                .then(response => response.json())
-                .then(data => {
-                    // Update obstacles table
-                    const obstaclesTable = document.getElementById('obstacles-data');
-                    obstaclesTable.innerHTML = '';
-
-                    data.cam1_detections.forEach(item => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td class="obstacle">${item.class}</td>
-                            <td>${item.adjusted_distance.toFixed(2)}</td>
-                            <td>${(item.confidence * 100).toFixed(1)}%</td>
-                        `;
-                        obstaclesTable.appendChild(row);
-                    });
-
-                    // Update vehicles table
-                    const vehiclesTable = document.getElementById('vehicles-data');
-                    vehiclesTable.innerHTML = '';
-
-                    data.cam2_detections.forEach(item => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td class="vehicle">${item.class}</td>
-                            <td>${item.adjusted_distance.toFixed(2)}</td>
-                            <td>${(item.confidence * 100).toFixed(1)}%</td>
-                        `;
-                        vehiclesTable.appendChild(row);
-                    });
-
-                    // Update total distance calculation
-                    document.getElementById('total-distance').textContent = `${data.total_distance.toFixed(2)} m`;
-                    document.getElementById('obstacle-distance').textContent = `${data.closest_obstacle_distance.toFixed(2)} m`;
-                    document.getElementById('vehicle-distance').textContent = `${data.closest_vehicle_distance.toFixed(2)} m`;
-                    document.getElementById('camera-distance').textContent = `${data.camera_distance.toFixed(2)} m`;
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        }
-
-        // Update data every second
-        setInterval(updateDetectionData, 1000);
-
-        // Initial update
-        updateDetectionData();
-    </script>
-</body>
-</html>
-        ''')
 
 
 def main():
-    """
-    Main function to start all threads and the Flask app
-    """
-    # Ensure data directory exists
-    ensure_data_dir()
 
-    # Create necessary template files
-    create_templates()
 
     # Start camera feed threads
     cam1_thread = threading.Thread(target=capture_camera_feed, args=(CAM1_URL, cam1_queue))
