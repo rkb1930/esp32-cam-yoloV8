@@ -27,10 +27,10 @@ model = YOLO("yolov8n.pt")  # Using the nano version, you can use s, m, l, or x 
 
 # Camera calibration parameters (you'll need to calibrate your cameras)
 # These are placeholder values - you'll need to replace with actual calibrated values
-FOCAL_LENGTH_CAM1 = 800  # focal length in pixels for camera 1
-FOCAL_LENGTH_CAM2 = 800  # focal length in pixels for camera 2
+FOCAL_LENGTH_CAM1 = 100  # focal length in pixels for camera 1
+FOCAL_LENGTH_CAM2 = 100  # focal length in pixels for camera 2
 KNOWN_WIDTH_PERSON = 0.6  # average width of a person in meters
-KNOWN_WIDTH_VEHICLE = 1.8  # average width of a vehicle in meters
+KNOWN_WIDTH_VEHICLE = 1.5  # average width of a vehicle in meters
 
 # Classes for obstacle detection (CAM1) - adjust based on your needs
 OBSTACLE_CLASSES = [0, 1, 2, 3, 5, 7]  # person, bicycle, car, motorcycle, bus, truck as obstacles
@@ -75,9 +75,9 @@ def calculate_distance(bbox_width, focal_length, known_width):
     distance = (known_width * focal_length) / bbox_width
 
     # Add 20 meters as per requirement
-    adjusted_distance = distance + 20
+    adjusted_distance = distance+0.3
 
-    return distance, adjusted_distance
+    return distance,adjusted_distance
 
 
 def resize_frame(frame, width=STANDARD_WIDTH, height=STANDARD_HEIGHT):

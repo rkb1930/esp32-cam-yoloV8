@@ -1,1 +1,1 @@
-[]
+[{"class": "person", "confidence": 0.865564227104187, "original_distance": 0.09316770186335403, "adjusted_distance": 0.29316770186335406, "bbox": [142, 244, 464, 479], "timestamp": 1743955921.3627484}, {"class": "person", "confidence": 0.5293163657188416, "original_distance": 0.47619047619047616, "adjusted_distance": 0.6761904761904762, "bbox": [576, 122, 639, 479], "timestamp": 1743955921.3627484}]
