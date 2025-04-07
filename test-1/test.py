@@ -75,7 +75,7 @@ def calculate_distance(bbox_width, focal_length, known_width):
     distance = (known_width * focal_length) / bbox_width
 
     # Add 20 meters as per requirement
-    adjusted_distance = distance+0.3
+    adjusted_distance = distance
 
     return distance,adjusted_distance
 
